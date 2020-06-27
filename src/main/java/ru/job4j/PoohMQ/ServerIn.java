@@ -50,8 +50,6 @@ public class ServerIn implements Runnable {
     }
 
     private String getName(String json) {
-        //String temp = json.replaceAll("[\"]", "/").replaceAll("");
-
-        return json.replaceAll("[\"]", "/").split("/")[1];
+        return json.replaceAll("[\"]", "/").split("/")[3];
     }
 }

@@ -39,8 +39,8 @@ public class MainServer {
                 Socket socket = s.accept();
                 System.out.println("Новое соединение установлено");
                 if (port == this.portIn) {
-                Thread serverIn = new Thread(new ServerIn(socket, queue));
-                serverIn.start();
+                    Thread serverIn = new Thread(new ServerIn(socket, queue));
+                    serverIn.start();
                 } else {
                     Thread serverOut = new Thread(new ServerOut(socket, queue));
                     serverOut.start();
