@@ -2,36 +2,32 @@ package ru.job4j.JMSExample;
 
 import ru.job4j.PoohMQ.*;
 
-import java.util.Enumeration;
 /*
-    Класс просмоторщика JMS сообщений JmsBrowser наследует все свойства родителя JmsBase и
-    определяет процедуру doAction(). В конструкторе класса выполняется подключение к провайдеру MQ,
-    после чего в процедуре doAction() создается объект просмотра сообщений browser типа QueueBrowser и
-    выполняется чтение сообщений messages. Сообщения выводятся в консоль и выполнение процедуры завершается.
+ * Класс просмоторщика JMS сообщений JmsBrowser считывает сообщения с топика, не удаляя их. Реализует подписчика.
  */
 
-public class JmsBrowser extends JmsBase {
+public class JmsBrowser {
     private QueueBrowser browser = null;
 
     public JmsBrowser() {
-        super();
-        if (browser != null) {
-            browser.close();
-        }
+        browser = new QueueBrowser();
+        doAction();
     }
 
-    @Override
-    public void doAction() {
+    private void doAction() {
         try {
-            browser = session.createBrowser(destination);
-            Enumeration<?> messages = browser.getEnumeration();
-            Message message;
-            while (messages.hasMoreElements()) {
-                message = (Message) messages.nextElement();
+
+            String message;
+            while (browser.isConnected()) {
+                message = browser.onMessage();
                 System.out.println(message);
+                Thread.sleep(10000);
+                browser.close();
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            browser.close();
         }
     }
 

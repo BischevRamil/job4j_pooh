@@ -2,20 +2,22 @@ package ru.job4j.JMSExample;
 
 import ru.job4j.PoohMQ.*;
 
-public class JmsConsumer extends JmsBase {
+/*
+ * Класс считывает сообщение из своей очереди и удаляет его, затем следующее, и так далее пока очередь
+ * не станет пустой. После этого ожидает новых сообщений.
+ */
+public class JmsConsumer {
     private MessageConsumer consumer = null;
 
     public JmsConsumer() {
-        super();
-        if (consumer != null) {
-            consumer.close();
-        }
+        consumer = new MessageConsumer();
+        doAction();
     }
-    @Override
-    public void doAction() {
-        Message message;
+
+    private void doAction() {
+        String message;
         try {
-            consumer = session.createConsumer(destination);
+
             do {
                 message = consumer.receive();
                 if (message != null)
@@ -23,6 +25,8 @@ public class JmsConsumer extends JmsBase {
             } while (message != null);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            consumer.close();
         }
         System.out.println("Просмотр JMS сообщений завершен");
     }

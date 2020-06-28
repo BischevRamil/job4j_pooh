@@ -1,4 +1,4 @@
-package ru.job4j.PoohMQ.Brocker;
+package ru.job4j.PoohMQ.Broker;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -10,45 +10,56 @@ import java.nio.channels.SocketChannel;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class Brocker {
+public class Broker implements Runnable {
+    private ConcurrentHashMap<String,MyQueue> queueList;
     private Selector selector;
     private InetSocketAddress address;
     private Set<SocketChannel> session;
     boolean isRunning = true;
 
-    public Brocker(String host, int port) {
+    public Broker(String host, int port) {
         this.address = new InetSocketAddress(host, port);
         this.session = new HashSet<>();
+        this.queueList = new ConcurrentHashMap<>();
     }
 
-    public void start() throws IOException {
-        this.selector = Selector.open();
-        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-        serverSocketChannel.bind(address);
-        serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT);
+    public void run() {
+        try {
+            this.selector = Selector.open();
+            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+            serverSocketChannel.bind(address);
+            serverSocketChannel.configureBlocking(false);
+            serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 
-        System.out.println("Server started...");
+            System.out.println("Server started...");
 
-        while(isRunning) {
-            // blocking, wait for events
-            this.selector.select();
-            Iterator keys = this.selector.selectedKeys().iterator();
-            while(keys.hasNext()) {
-                SelectionKey key = (SelectionKey) keys.next();
-                keys.remove();
-                if (!key.isValid()) {
-                    continue;
-                }
-                if (key.isAcceptable()) {
-                    accept(key);
-                }
-                else if (key.isReadable()) {
-                    read(key);
+            while(isRunning) {
+                // blocking, wait for events
+                this.selector.select();
+                Iterator keys = this.selector.selectedKeys().iterator();
+                while(keys.hasNext()) {
+                    SelectionKey key = (SelectionKey) keys.next();
+                    keys.remove();
+                    if (!key.isValid()) {
+                        continue;
+                    }
+                    if (key.isAcceptable()) {
+                        accept(key);
+                    }
+                    else if (key.isReadable()) {
+                        read(key);
+                    }
+                    else if (key.isWritable()) {
+                        write(key);
+                    }
                 }
             }
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
+
     }
 
     private void accept(SelectionKey key) throws IOException {
@@ -75,8 +86,13 @@ public class Brocker {
         byte[] data = new byte[numRead];
         System.arraycopy(byteBuffer.array(), 0, data, 0, numRead);
         String gotData = new String(data);
+
         System.out.println("Got: " + gotData);
         broadcast(channel.socket().getRemoteSocketAddress() + ": " + gotData);
+    }
+
+    private void write(SelectionKey key) throws IOException {
+
     }
 
     private void broadcast(String data) {

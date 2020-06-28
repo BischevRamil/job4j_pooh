@@ -1,31 +1,24 @@
 package ru.job4j.JMSExample;
 
-import ru.job4j.PoohMQ.Message;
 import ru.job4j.PoohMQ.MessageProducer;
 
-import java.io.IOException;
-
-public class JmsProducer extends JmsBase {
+public class JmsProducer {
     private MessageProducer producer = null;
 
-    public JmsProducer() throws IOException {
-        super();
-        if (producer != null) {
-            producer.close();
-        }
+    public JmsProducer() {
+        producer = new MessageProducer();
+        doAction();
     }
 
-    @Override
-    public void doAction() {
-        String message = "{\"queue\" : \"weather\",\"text\" : \"temperature +18 C\"}";
+    private void doAction() {
+        String message = "POST /queue \n {\"queue\" : \"weather\",\"text\" : \"temperature +18 C\"}";
         try {
-            Message m = null;
-            producer = session.createProducer(destination);
             System.out.println("Отправка JMS сообщений");
-            m = session.createMessage(message);
-            producer.send(m);
+            producer.send(message);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            producer.close();
         }
     }
 
