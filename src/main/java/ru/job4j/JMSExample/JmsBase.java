@@ -1,33 +1,15 @@
 package ru.job4j.JMSExample;
 
 import ru.job4j.PoohMQ.*;
-
-import java.util.Queue;
+import java.io.IOException;
 
 public abstract class JmsBase {
     private Connection connection;
-    protected Session session;
-    private String queueName = "queue1";
-    protected Queue destination;
 
-    public JmsBase() {
-        try {
-            createConnection();
-            session = connection.createSession();
-            destination = session.createQueue(queueName);
-            connection.start();
-            doAction();
-        } finally {
-            try {
-                if (session != null)
-                    session.close();
-                if (connection != null)
-                    connection.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
+    public JmsBase() throws IOException {
+        createConnection();
+        connection.start();
+        doAction();
     }
 
     private void createConnection() {
@@ -36,6 +18,8 @@ public abstract class JmsBase {
         try {
             jmsFactory = JmsFactory.getInstance();
             jmsConnectionFactory = jmsFactory.createConnectionFactory();
+            jmsConnectionFactory.setHost("localhost");
+            jmsConnectionFactory.setPort(8080);
             connection = jmsConnectionFactory.createConnection();
         } catch (Exception e) {
             e.printStackTrace();

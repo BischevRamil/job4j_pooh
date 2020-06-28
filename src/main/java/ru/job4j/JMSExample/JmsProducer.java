@@ -3,10 +3,12 @@ package ru.job4j.JMSExample;
 import ru.job4j.PoohMQ.Message;
 import ru.job4j.PoohMQ.MessageProducer;
 
+import java.io.IOException;
+
 public class JmsProducer extends JmsBase {
     private MessageProducer producer = null;
 
-    public JmsProducer() {
+    public JmsProducer() throws IOException {
         super();
         if (producer != null) {
             producer.close();
