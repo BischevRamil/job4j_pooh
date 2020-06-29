@@ -24,4 +24,11 @@ public class MyQueue {
     public int size() {
         return queue.size();
     }
+
+    @Override
+    public String toString() {
+        return "MyQueue{" +
+                "queue=" + queue +
+                '}';
+    }
 }
