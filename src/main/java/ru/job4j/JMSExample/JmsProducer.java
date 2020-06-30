@@ -1,6 +1,6 @@
 package ru.job4j.JMSExample;
 
-import ru.job4j.PoohMQ.MessageProducer;
+import ru.job4j.PoohMQ.MessageClient;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -39,23 +39,28 @@ public class JmsProducer {
     }
 
     private class Publisher implements Runnable {
-        private MessageProducer producer = null;
+        private MessageClient messageClient = null;
         private String message;
 
         public Publisher(String m) {
-            producer = new MessageProducer();
+            messageClient = new MessageClient();
             message = m;
         }
 
         public void run() {
-            try {
-                System.out.println("Отправка JMS сообщений");
-                producer.send(message);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                producer.close();
+            if (messageClient.isConnected()) {
+                String response;
+                try {
+                    System.out.println("Sending JMS message...");
+                    response = messageClient.sendRequest(message);
+                    System.out.println("Response from server: " + response);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    messageClient.close();
+                }
             }
+
         }
     }
 }

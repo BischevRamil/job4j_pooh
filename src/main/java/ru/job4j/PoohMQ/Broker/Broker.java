@@ -40,7 +40,7 @@ public class Broker implements Runnable {
             serverSocketChannel.configureBlocking(false);
             serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT);
 
-            System.out.println("Server started...");
+            System.out.println("Broker server started...");
 
             while(isRunning) {
                 // blocking, wait for events
@@ -89,45 +89,12 @@ public class Broker implements Runnable {
             key.cancel();
             return;
         }
-
         byte[] data = new byte[numRead];
         System.arraycopy(byteBuffer.array(), 0, data, 0, numRead);
         String gotData = new String(data);
         System.out.println("Got: " + gotData);
-        byteBuffer.clear();
         Request request = new Request(gotData);
-
-        /*запрос на размещение записи */
-        if (request.getTypeOfRequest().equalsIgnoreCase("POST")) {
-
-            /*Помещение в очередь*/
-            if (request.getTypeOfQueue().equalsIgnoreCase("Queue")) {
-                if (this.queueList.containsKey(request.getTheme())) {
-                    this.queueList.get(request.getTheme()).putAtHeader(request.getBody());
-                } else {
-                    MyQueue myQueue = new MyQueue();
-                    myQueue.putAtHeader(request.getBody());
-                    this.queueList.put(request.getTheme(), myQueue);
-                }
-                /*Помещение в топик*/
-            } else if (request.getTypeOfQueue().equalsIgnoreCase("Topic")) {
-                if (this.topicList.containsKey(request.getTheme())) {
-                    this.topicList.get(request.getTheme()).putAtHeader(request.getBody());
-                } else {
-                    MyQueue myQueue = new MyQueue();
-                    myQueue.putAtHeader(request.getBody());
-                    this.topicList.put(request.getTheme(), myQueue);
-                }
-            }
-            System.out.println("queue: " + this.queueList);
-            System.out.println("topic: " + this.topicList);
-            this.session.remove(channel);
-            channel.close();
-            key.cancel();
-            return;
-        } else {
-            channel.register(this.selector, SelectionKey.OP_WRITE, request);
-        }
+        channel.register(this.selector, SelectionKey.OP_WRITE, request);
     }
 
     private void write(SelectionKey key) throws IOException {
@@ -135,28 +102,73 @@ public class Broker implements Runnable {
         Request request = (Request) key.attachment();
         ByteBuffer byteBuffer;
         try {
+            if (request.getTypeOfRequest().equalsIgnoreCase("POST")) {
+                postRequest(request, channel);
+            }
             if(request.getTypeOfRequest().equalsIgnoreCase("GET")) {
-                if (request.getTypeOfQueue().equalsIgnoreCase("Queue")) {
-                    if (this.queueList.containsKey(request.getTheme())) {
-                        byteBuffer = ByteBuffer.wrap(this.queueList.get(request.getTheme()).getAndRemoveTail().getBytes());
-                        channel.write(byteBuffer);
-                        byteBuffer.clear();
-                    }
-                } else if (request.getTypeOfQueue().equalsIgnoreCase("Topic")) {
-                    if (this.topicList.containsKey(request.getTheme())) {
-                        byteBuffer = ByteBuffer.wrap(this.topicList.get(request.getTheme()).getTail().getBytes());
-                        channel.write(byteBuffer);
-                        byteBuffer.clear();
-                        channel.close();
-                        key.cancel();
-                    }
-                }
+                getRequest(request, channel);
             }
         } catch (NullPointerException npe) {
             channel.close();
             key.cancel();
             npe.printStackTrace();
             System.out.println("Queue is empty");
+        }
+    }
+
+    private void postRequest(Request request, SocketChannel channel) throws IOException {
+        ByteBuffer byteBuffer;
+        /*Помещение в очередь*/
+        if (request.getTypeOfQueue().equalsIgnoreCase("Queue")) {
+            if (this.queueList.containsKey(request.getTheme())) {
+                this.queueList.get(request.getTheme()).putAtHeader(request.getBody());
+            } else {
+                MyQueue myQueue = new MyQueue();
+                myQueue.putAtHeader(request.getBody());
+                this.queueList.put(request.getTheme(), myQueue);
+            }
+            String response = "Your message has been accepted to queue: " + request.getTheme();
+            byteBuffer = ByteBuffer.wrap(response.getBytes());
+            channel.write(byteBuffer);
+            /*Помещение в топик*/
+        } else if (request.getTypeOfQueue().equalsIgnoreCase("Topic")) {
+            if (this.topicList.containsKey(request.getTheme())) {
+                this.topicList.get(request.getTheme()).putAtHeader(request.getBody());
+            } else {
+                MyQueue myQueue = new MyQueue();
+                myQueue.putAtHeader(request.getBody());
+                this.topicList.put(request.getTheme(), myQueue);
+            }
+            String response = "Your message has been accepted to topic: " + request.getTheme();
+            byteBuffer = ByteBuffer.wrap(response.getBytes());
+            channel.write(byteBuffer);
+        }
+        System.out.println("queue: " + this.queueList);
+        System.out.println("topic: " + this.topicList);
+        this.session.remove(channel);
+        channel.close();
+//        key.cancel();
+
+    }
+
+    private void getRequest(Request request, SocketChannel channel) throws IOException {
+        ByteBuffer byteBuffer;
+        //Извлечение из очереди
+        if (request.getTypeOfQueue().equalsIgnoreCase("Queue")) {
+            if (this.queueList.containsKey(request.getTheme())) {
+                byteBuffer = ByteBuffer.wrap(this.queueList.get(request.getTheme()).getAndRemoveTail().getBytes());
+                channel.write(byteBuffer);
+                byteBuffer.clear();
+            }
+            //Чтение из топика
+        } else if (request.getTypeOfQueue().equalsIgnoreCase("Topic")) {
+            if (this.topicList.containsKey(request.getTheme())) {
+                byteBuffer = ByteBuffer.wrap(this.topicList.get(request.getTheme()).getTail().getBytes());
+                channel.write(byteBuffer);
+                byteBuffer.clear();
+                channel.close();
+//                key.cancel();
+            }
         }
     }
 }

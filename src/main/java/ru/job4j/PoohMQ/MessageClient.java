@@ -1,20 +1,20 @@
 package ru.job4j.PoohMQ;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 
-public class MessageProducer {
+public class MessageClient {
     private Socket socket;
     private String host = "localhost";
     private int port = 8080;
+    boolean isConnected = true;
 
-    public MessageProducer() {
+    public MessageClient() {
         try {
             createSocket();
         } catch (IOException ioe) {
+            isConnected = false;
             ioe.printStackTrace();
             System.out.println("Client not connected to broker");
         }
@@ -25,10 +25,14 @@ public class MessageProducer {
     }
 
 
-    public void send(String message) throws IOException {
+    public String sendRequest(String request) throws IOException {
+        String m;
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream()));
-        out.write(message);
+        BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+        out.write(request);
         out.flush();
+        m = in.readLine();
+        return m;
     }
 
     public void close() {
@@ -37,5 +41,9 @@ public class MessageProducer {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+    }
+
+    public boolean isConnected() {
+        return isConnected;
     }
 }

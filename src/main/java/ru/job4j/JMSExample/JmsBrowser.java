@@ -39,23 +39,25 @@ public class JmsBrowser {
     }
 
     private class Browser implements Runnable {
-        private QueueBrowser browser;
+        private MessageClient messageClient;
         private String request;
 
         public Browser(String request) {
-            browser = new QueueBrowser();
+            messageClient = new MessageClient();
             this.request = request;
         }
 
         public void run() {
-            try {
-                String message;
-                message = browser.onMessage(request);
-                System.out.println("Сообщение :" + message);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                browser.close();
+            if (messageClient.isConnected()) {
+                try {
+                    String response;
+                    response = messageClient.sendRequest(request);
+                    System.out.println("Message :" + response);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    messageClient.close();
+                }
             }
         }
     }

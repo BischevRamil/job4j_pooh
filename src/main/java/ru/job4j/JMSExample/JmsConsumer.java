@@ -38,28 +38,33 @@ public class JmsConsumer {
     }
 
     private class Consumer implements Runnable {
-        private MessageConsumer consumer = null;
+        private MessageClient messageClient = null;
         private String request;
 
         public Consumer(String request) {
-            consumer = new MessageConsumer();
+            messageClient = new MessageClient();
             this.request = request;
         }
 
         public void run() {
-            String message;
-            try {
-                do {
-                    message = consumer.receive(request);
-                    if (message != null)
-                        System.out.println("Сообщение :" + message);
-                } while (message != null);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                consumer.close();
+            if (messageClient.isConnected()) {
+                String response;
+                try {
+                    do {
+                        response = messageClient.sendRequest(request);
+                        if (response != null) {
+                            System.out.println("Message :" + response);
+                        } else {
+                            System.out.println("Queue is empty!");
+                        }
+                    } while (response != null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    messageClient.close();
+                }
+                System.out.println("Message view complete");
             }
-            System.out.println("Просмотр JMS сообщений завершен");
         }
     }
 }
