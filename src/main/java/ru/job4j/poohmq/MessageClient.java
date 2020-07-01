@@ -1,4 +1,4 @@
-package ru.job4j.PoohMQ;
+package ru.job4j.poohmq;
 
 import java.io.*;
 import java.net.InetAddress;

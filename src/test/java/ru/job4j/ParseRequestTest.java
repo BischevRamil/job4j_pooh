@@ -3,7 +3,7 @@ package ru.job4j;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.is;
-import ru.job4j.PoohMQ.Broker.Request;
+import ru.job4j.poohmq.broker.Request;
 
 public class ParseRequestTest {
 

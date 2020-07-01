@@ -1,4 +1,4 @@
-package ru.job4j.PoohMQ.Broker;
+package ru.job4j.poohmq.broker;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -42,11 +42,11 @@ public class Broker implements Runnable {
 
             System.out.println("Broker server started...");
 
-            while(isRunning) {
+            while (isRunning) {
                 // blocking, wait for events
                 this.selector.select();
                 Iterator keys = this.selector.selectedKeys().iterator();
-                while(keys.hasNext()) {
+                while (keys.hasNext()) {
                     SelectionKey key = (SelectionKey) keys.next();
                     keys.remove();
                     if (!key.isValid()) {
@@ -54,11 +54,9 @@ public class Broker implements Runnable {
                     }
                     if (key.isAcceptable()) {
                         accept(key);
-                    }
-                    else if (key.isReadable()) {
+                    } else if (key.isReadable()) {
                         read(key);
-                    }
-                    else if (key.isWritable()) {
+                    } else if (key.isWritable()) {
                         write(key);
                     }
                 }
@@ -105,7 +103,7 @@ public class Broker implements Runnable {
             if (request.getTypeOfRequest().equalsIgnoreCase("POST")) {
                 postRequest(request, channel);
             }
-            if(request.getTypeOfRequest().equalsIgnoreCase("GET")) {
+            if (request.getTypeOfRequest().equalsIgnoreCase("GET")) {
                 getRequest(request, channel);
             }
         } catch (NullPointerException npe) {

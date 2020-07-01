@@ -1,4 +1,4 @@
-package ru.job4j.PoohMQ.Broker;
+package ru.job4j.poohmq.broker;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -27,8 +27,8 @@ public class MyQueue {
 
     @Override
     public String toString() {
-        return "MyQueue{" +
-                "queue=" + queue +
-                '}';
+        return "MyQueue{"
+                + "queue=" + queue
+                + '}';
     }
 }

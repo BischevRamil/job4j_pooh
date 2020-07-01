@@ -1,6 +1,6 @@
-package ru.job4j.JMSExample;
+package ru.job4j.jmsexample;
 
-import ru.job4j.PoohMQ.*;
+import ru.job4j.poohmq.*;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;

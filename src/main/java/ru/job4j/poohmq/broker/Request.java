@@ -1,4 +1,4 @@
-package ru.job4j.PoohMQ.Broker;
+package ru.job4j.poohmq.broker;
 
 public class Request {
     //json

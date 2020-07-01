@@ -1,6 +1,6 @@
-package ru.job4j.JMSExample;
+package ru.job4j.jmsexample;
 
-import ru.job4j.PoohMQ.Broker.Broker;
+import ru.job4j.poohmq.broker.Broker;
 
 public class BrokerStart {
 
